@@ -44,3 +44,14 @@ def get_tile(date: str):
         return {"tile_url": map_id["tile_fetcher"].url_format}
     except ee.EEException as e:
          raise HTTPException(status_code=500, detail=f"Earth Engine error: {str(e)}")
+    
+@app.get("/pixel_value")
+def get_pixel_value(lat: float, lng: float, date: str):
+    dataset = ee.ImageCollection("MODIS/061/MOD11A2") \
+        .filterDate(f"{date}-01", f"{date}-28") \
+        .mean().select("LST_Day_1km").multiply(0.02).subtract(273.15)
+
+    # Sample the value at the given point
+    point = ee.Geometry.Point([lng, lat])
+    value = dataset.sample(point, 1000).first().get("LST_Day_1km").getInfo()
+    return {"value": value}
