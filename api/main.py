@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 import ee
 import re
+import json
 
 # Authenticate and Initialize Earth Engine
 ee.Authenticate()
@@ -103,7 +104,7 @@ def get_ndvi_tile(date: str, aoi: Optional[str] = Query(None)):
 
         # Visualization parameters
         vis_params = {
-            "min": 0,
+            "min": -1,
             "max": 1,
             "palette": ["red", "white", "green"],  # NDVI color scale
         }

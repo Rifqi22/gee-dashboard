@@ -11,6 +11,7 @@ const Drawer: React.FC<Props> = ({ setAOI }) => {
   const onCreated = (e: any) => {
     const layer = e.layer;
     const geojson = layer.toGeoJSON().geometry;
+    console.log("GEOJSON", geojson);
     setAOI(geojson); // store AOI in state
   };
 

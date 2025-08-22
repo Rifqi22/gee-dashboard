@@ -20,7 +20,7 @@ const Map: React.FC = () => {
     lst: true,
     ndvi: false,
   });
-  const [AOI, setAOI] = useState();
+  const [AOI, setAOI] = useState(null);
 
   const toggleLayer = (layerName: "lst" | "ndvi") => {
     setLayers((prev) => ({
@@ -71,7 +71,7 @@ const Map: React.FC = () => {
 
   useEffect(() => {
     fetchTile();
-  }, [date, layers]);
+  }, [date, layers, AOI]);
 
   return (
     <div className="flex w-screen">
