@@ -8,6 +8,7 @@ import Sidebar from "../Layout/Sidebar";
 import Basemap from "./Toggle/Basemap";
 import Wrapper from "../Core/Wrapper";
 import MapControl from "./Control/MapControl";
+import Drawer from "./Drawer";
 
 const Map: React.FC = () => {
   const [tileUrls, setTileUrls] = useState({
@@ -19,6 +20,7 @@ const Map: React.FC = () => {
     lst: true,
     ndvi: false,
   });
+  const [AOI, setAOI] = useState();
 
   const toggleLayer = (layerName: "lst" | "ndvi") => {
     setLayers((prev) => ({
@@ -33,8 +35,14 @@ const Map: React.FC = () => {
     try {
       const urls: { lst?: string; ndvi?: string } = {};
 
+      const query = new URLSearchParams();
+      query.append("date", date);
+      if (AOI) {
+        query.append("aoi", JSON.stringify(AOI));
+      }
+
       if (layers.lst) {
-        const resLST = await fetch(`http://127.0.0.1:8000/tiles_lst/${date}`);
+        const resLST = await fetch(`http://127.0.0.1:8000/tiles_lst?${query}`);
         const jsonLST = await resLST.json();
         if (jsonLST.tile_url) {
           urls.lst = jsonLST.tile_url;
@@ -42,7 +50,9 @@ const Map: React.FC = () => {
       }
 
       if (layers.ndvi) {
-        const resNDVI = await fetch(`http://127.0.0.1:8000/tiles_ndvi/${date}`);
+        const resNDVI = await fetch(
+          `http://127.0.0.1:8000/tiles_ndvi?${query}`
+        );
         const jsonNDVI = await resNDVI.json();
         if (jsonNDVI.tile_url) {
           urls.ndvi = jsonNDVI.tile_url;
@@ -101,6 +111,7 @@ const Map: React.FC = () => {
             />
           </Wrapper> */}
           <MapPopup date={date} />
+          <Drawer setAOI={setAOI} />
           {/* MODIS tile layer from backend */}
           {layers.lst && tileUrls.lst && (
             <TileLayerUpdater url={tileUrls.lst} attribution="MODIS LST" />
