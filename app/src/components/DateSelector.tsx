@@ -8,7 +8,7 @@ interface Props {
 
 const DateSelector: React.FC<Props> = ({ date, setDate, fetchTile }) => {
   return (
-    <div style={{ position: "absolute", zIndex: 1000, padding: 10 }}>
+    <div className="flex ">
       <label>
         Select Month (YYYY-MM):
         <input
