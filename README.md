@@ -8,8 +8,8 @@ cd gee-dashboard
 
 Backend (FastAPI)
 
-1. Navigate to backend folder
-   cd backend
+1. Navigate to /api folder
+   cd /api
 
 2. Create a virtual environment
    python -m venv venv
