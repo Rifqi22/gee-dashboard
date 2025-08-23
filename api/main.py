@@ -26,13 +26,15 @@ def root():
 
 # get the tiles image from the given date ex: 2025-01
 @app.get("/tiles_lst")
-def get_tile(date: str, aoi: Optional[str] = Query(None)):
-    if not re.match(r"^\d{4}-\d{2}$", date):
-        raise HTTPException(status_code=400, detail="Date must be in YYYY-MM format")
+def get_tile(start_date: str, end_date: str, aoi: Optional[str] = Query(None)):
+    for d in [start_date, end_date]:
+            if not re.match(r"^\d{4}-\d{2}$", d):
+                raise HTTPException(status_code=400, detail="Dates must be in YYYY-MM format")
+
 
     try:
         dataset = ee.ImageCollection("MODIS/061/MOD11A2") \
-            .filterDate(f"{date}-01", f"{date}-28") \
+            .filterDate(f"{start_date}-01", f"{end_date}-28") \
             .mean().select("LST_Day_1km").multiply(0.02).subtract(273.15)
 
         if aoi:
@@ -52,15 +54,38 @@ def get_tile(date: str, aoi: Optional[str] = Query(None)):
 
 
 @app.get("/pixel_value")
-def get_pixel_value(lat: float, lng: float, date: str):
-    dataset = ee.ImageCollection("MODIS/061/MOD11A2") \
-        .filterDate(f"{date}-01", f"{date}-28") \
-        .mean().select("LST_Day_1km").multiply(0.02).subtract(273.15)
+def get_pixel_value(lat: float, lng: float, start_date: str, end_date: str):
+    # Validate date format
+    for d in [start_date, end_date]:
+        if not re.match(r"^\d{4}-\d{2}$", d):
+            raise HTTPException(status_code=400, detail="Dates must be in YYYY-MM format")
 
-    # Sample the value at the given point
     point = ee.Geometry.Point([lng, lat])
-    value = dataset.sample(point, 1000).first().get("LST_Day_1km").getInfo()
-    return {"value": value}
+
+    try:
+        # LST: MODIS Land Surface Temperature
+        lst_dataset = ee.ImageCollection("MODIS/061/MOD11A2") \
+            .filterDate(f"{start_date}-01", f"{end_date}-28") \
+            .mean().select("LST_Day_1km").multiply(0.02).subtract(273.15)
+
+        lst_value = lst_dataset.sample(point, 1000).first().get("LST_Day_1km").getInfo()
+
+        # NDVI: Sentinel-2 NDVI with cloud masking
+        ndvi_dataset = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED") \
+            .filterDate(f"{start_date}-01", f"{end_date}-28") \
+            .map(mask_s2_clouds) \
+            .map(lambda img: img.normalizedDifference(["B8", "B4"]).rename("NDVI")) \
+            .mean().select("NDVI")
+
+        ndvi_value = ndvi_dataset.sample(point, 10).first().get("NDVI").getInfo()
+
+        return {
+            "lst_value": lst_value,
+            "ndvi_value": ndvi_value
+        }
+
+    except ee.EEException as e:
+        raise HTTPException(status_code=500, detail=f"Earth Engine error: {str(e)}")
 
 def mask_s2_clouds(image):
     """Mask clouds and cirrus using the SCL band (Scene Classification)."""
@@ -75,14 +100,12 @@ def mask_s2_clouds(image):
 
 # Generate a tile URL for NDVI for a given month. date format: 'YYYY-MM'
 @app.get("/tiles_ndvi")
-def get_ndvi_tile(date: str, aoi: Optional[str] = Query(None)):
-    if not re.match(r"^\d{4}-\d{2}$", date):
-        raise HTTPException(status_code=400, detail="Date must be in YYYY-MM format")
-    
-    try:
-        start_date = f"{date}-01"
-        end_date = f"{date}-28"
+def get_ndvi_tile(start_date: str, end_date: str, aoi: Optional[str] = Query(None)):
+    for d in [start_date, end_date]:
+            if not re.match(r"^\d{4}-\d{2}$", d):
+                raise HTTPException(status_code=400, detail="Dates must be in YYYY-MM format")
 
+    try:
         # Filter Sentinel-2 SR images
         collection = (
             ee.ImageCollection("COPERNICUS/S2_SR")
@@ -114,3 +137,77 @@ def get_ndvi_tile(date: str, aoi: Optional[str] = Query(None)):
         return {"tile_url": map_id["tile_fetcher"].url_format}
     except ee.EEException as e:
          raise HTTPException(status_code=500, detail=f"Earth Engine error: {str(e)}")
+
+# LEGEND
+@app.get("/legend_stats_lst")
+def get_legend_stats_lst(start_date: str, end_date: str, aoi: Optional[str] = Query(None)):
+    for d in [start_date, end_date]:
+        if not re.match(r"^\d{4}-\d{2}$", d):
+            raise HTTPException(status_code=400, detail="Dates must be in YYYY-MM format")
+
+    try:
+        image = ee.ImageCollection("MODIS/061/MOD11A2") \
+            .filterDate(f"{start_date}-01", f"{end_date}-28") \
+            .mean().select("LST_Day_1km").multiply(0.02).subtract(273.15)
+
+        if aoi:
+            try:
+                aoi_json = json.loads(aoi)
+                geometry = ee.Geometry(aoi_json)
+                image = image.clip(geometry)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Invalid AOI format: {str(e)}")
+
+        stats = image.reduceRegion(
+            reducer=ee.Reducer.minMax(),
+            geometry=image.geometry(),
+            scale=1000,
+            maxPixels=1e13
+        ).getInfo()
+
+        return {
+            "min": round(stats["LST_Day_1km_min"], 2),
+            "max": round(stats["LST_Day_1km_max"], 2)
+        }
+
+    except ee.EEException as e:
+        raise HTTPException(status_code=500, detail=f"Earth Engine error: {str(e)}")
+
+@app.get("/legend_stats_ndvi")
+def get_legend_stats_ndvi(start_date: str, end_date: str, aoi: Optional[str] = Query(None)):
+    for d in [start_date, end_date]:
+        if not re.match(r"^\d{4}-\d{2}$", d):
+            raise HTTPException(status_code=400, detail="Dates must be in YYYY-MM format")
+
+    try:
+        collection = (
+            ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+            .filterDate(f"{start_date}-01", f"{end_date}-28")
+            .map(mask_s2_clouds)
+            .map(lambda img: img.normalizedDifference(["B8", "B4"]).rename("NDVI"))
+        )
+
+        ndvi = collection.mean().select("NDVI")
+
+        if aoi:
+            try:
+                aoi_json = json.loads(aoi)
+                geometry = ee.Geometry(aoi_json)
+                ndvi = ndvi.clip(geometry)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Invalid AOI format: {str(e)}")
+
+        stats = ndvi.reduceRegion(
+            reducer=ee.Reducer.minMax(),
+            geometry=ndvi.geometry(),
+            scale=10,
+            maxPixels=1e13
+        ).getInfo()
+
+        return {
+            "min": round(stats["NDVI_min"], 2),
+            "max": round(stats["NDVI_max"], 2)
+        }
+
+    except ee.EEException as e:
+        raise HTTPException(status_code=500, detail=f"Earth Engine error: {str(e)}")
