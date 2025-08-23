@@ -11,7 +11,6 @@ const Drawer: React.FC<Props> = ({ setAOI }) => {
   const onCreated = (e: any) => {
     const layer = e.layer;
     const geojson = layer.toGeoJSON().geometry;
-    console.log("GEOJSON", geojson);
     setAOI(geojson); // store AOI in state
   };
 
@@ -20,7 +19,13 @@ const Drawer: React.FC<Props> = ({ setAOI }) => {
       <EditControl
         position="topright"
         onCreated={onCreated}
-        draw={{ rectangle: true, polygon: true }}
+        draw={{
+          rectangle: true,
+          polygon: true,
+          circle: false,
+          marker: false,
+          polyline: false,
+        }}
       />
     </FeatureGroup>
   );

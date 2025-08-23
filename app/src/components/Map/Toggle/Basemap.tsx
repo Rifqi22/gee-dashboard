@@ -1,49 +1,64 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 
 interface Props {
-  initial?: "osm" | "topo";
+  initial?: "osm" | "topo" | "satellite" | "dark";
 }
 
 const Basemap: React.FC<Props> = ({ initial = "osm" }) => {
   const [active, setActive] = useState(initial);
   const map = useMap();
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
 
   const basemaps = [
     {
       label: "osm",
-      icon: "",
+      name: "OpenStreetMap",
       url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      thumbnail: "https://a.tile.openstreetmap.org/12/2220/1470.png",
+      attribution: "© OpenStreetMap contributors",
     },
     {
       label: "topo",
-      icon: "",
+      name: "Topo Map",
       url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+      thumbnail: "https://a.tile.opentopomap.org/12/2220/1470.png",
+      attribution: "© OpenTopoMap contributors",
+    },
+    {
+      label: "satellite",
+      name: "Satellite",
+      url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      thumbnail:
+        "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/12/1470/2220",
+      attribution: "© Esri & contributors",
+    },
+    {
+      label: "dark",
+      name: "Dark Mode",
+      url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+      thumbnail: "https://a.basemaps.cartocdn.com/dark_all/12/2220/1470.png",
+      attribution: "© CartoDB",
     },
   ];
-  const urls = {
-    osm: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    topo: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-  };
 
   useEffect(() => {
-    // Remove existing base layers
-    map.eachLayer((layer: any) => {
-      if (layer.options && layer.options.baseLayer) {
-        map.removeLayer(layer);
-      }
-    });
+    const selected = basemaps.find((b) => b.label === active);
+    if (!selected) return;
 
-    // Add selected base layer using Leaflet directly
-    const tile = L.tileLayer(urls[active], {
-      attribution: active === "osm" ? "OpenStreetMap" : "Topography",
-      baseLayer: true,
+    // Remove previous tile layer if exists
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    // Add new tile layer
+    const newTileLayer = L.tileLayer(selected.url, {
+      attribution: selected.attribution,
     }).addTo(map);
 
-    return () => {
-      map.removeLayer(tile); // cleanup on unmount
-    };
+    // Store reference
+    tileLayerRef.current = newTileLayer;
   }, [active, map]);
 
   return (
@@ -64,14 +79,26 @@ const Basemap: React.FC<Props> = ({ initial = "osm" }) => {
         </svg>
         Basemap
       </h2>
-      <div className="grid grid-cols-2 gap-2">
-        {basemaps.map((map) => (
+      <div className="flex gap-2">
+        {basemaps.map((bm) => (
           <button
-            key={map.label}
-            className="bg-neutral-800 hover:bg-neutral-700 text-white py-2 rounded text-sm font-medium flex items-center justify-center gap-1"
-            onClick={() => setActive(map.label)}
+            key={bm.label}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActive(bm.label);
+            }}
+            className={`rounded overflow-hidden border ${
+              active === bm.label ? "border-blue-500" : "border-neutral-700"
+            }`}
           >
-            {map.icon} {map.label}
+            <img
+              src={bm.thumbnail}
+              alt={bm.name}
+              className="min-w-[7rem] h-20 object-cover"
+            />
+            <div className="bg-neutral-800 text-white text-xs text-center py-1 font-medium">
+              {bm.name}
+            </div>
           </button>
         ))}
       </div>
