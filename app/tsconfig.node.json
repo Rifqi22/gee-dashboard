@@ -4,6 +4,7 @@
     "target": "ES2023",
     "lib": ["ES2023"],
     "module": "ESNext",
+    "allowJs": true,
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -21,5 +22,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.js"]
+  "include": ["./vite.config.js"],
+  "exclude": []
 }

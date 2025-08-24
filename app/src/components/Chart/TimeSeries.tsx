@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import { Line } from "react-chartjs-2";
-import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import {
   Chart as ChartJS,
@@ -93,7 +92,7 @@ const TimeSeries: React.FC<Props> = ({ data }) => {
         },
       },
       tooltip: {
-        mode: "index",
+        mode: "index" as const,
         intersect: false,
       },
     },

@@ -5,8 +5,12 @@ import App from "./App";
 import "leaflet/dist/leaflet.css"; // required for Leaflet
 import "leaflet-draw/dist/leaflet.draw.css";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+const root = document.getElementById("root");
+
+if (root) {
+  ReactDOM.createRoot(root).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}

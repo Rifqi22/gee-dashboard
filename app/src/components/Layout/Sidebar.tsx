@@ -23,14 +23,19 @@ interface Props {
     lst: number;
     ndvi: number;
   };
-  toggleLayer: (layerName: keyof typeof layers) => void;
-  setOpacity: (layerName: keyof typeof layers, value: number) => void;
+  toggleLayer: (layerName: "lst" | "ndvi") => void;
+  setOpacity: (layer: "lst" | "ndvi", value: number) => void;
   isDrawing: boolean;
   toggleDrawing: () => void;
   applyAOI: () => void;
   hasAOI: boolean;
   sameAOI: boolean;
-  summary: any[];
+  summary: {
+    layer: string;
+    min: number;
+    max: number;
+    unit?: string;
+  }[];
 }
 const Sidebar: React.FC<Props> = ({
   startDate, // Date Selector

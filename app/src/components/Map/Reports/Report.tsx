@@ -17,7 +17,7 @@ interface Props {
   };
 }
 
-const Report: React.FC<Props> = ({ summary, mapContainerId, timeSeries }) => {
+const Report: React.FC<Props> = ({ summary, timeSeries }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   console.log("SUMMARY", summary);
   console.log("✅ Report component loaded from Map/Reports/Report.tsx");
@@ -34,7 +34,7 @@ const Report: React.FC<Props> = ({ summary, mapContainerId, timeSeries }) => {
           </p>
         </div>
         <button
-          onClick={() => exportReport({ summary, mapContainerId, chartRef })}
+          onClick={() => exportReport({ summary, chartRef })}
           className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white text-sm px-4 py-2 rounded-md transition"
         >
           <ArrowDownTrayIcon className="h-4 w-4" />

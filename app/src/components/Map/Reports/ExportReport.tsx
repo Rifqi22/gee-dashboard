@@ -11,27 +11,25 @@ interface SummaryItem {
 
 interface ExportOptions {
   summary: SummaryItem[];
-  mapContainerId: string;
-  chartRef: React.RefObject<HTMLDivElement>;
+
+  chartRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export async function exportReport({
-  summary,
-  mapContainerId,
-  chartRef,
-}: ExportOptions) {
+export async function exportReport({ summary, chartRef }: ExportOptions) {
   const doc = new jsPDF();
 
   // Patch unsupported oklch() colors
   function patchUnsupportedColors(root: HTMLElement) {
     const elements = root.querySelectorAll("*");
 
+    const props = ["color", "backgroundColor", "borderColor"] as const;
+
     elements.forEach((el) => {
       const style = getComputedStyle(el);
-      ["color", "backgroundColor", "borderColor"].forEach((prop) => {
-        const value = style[prop as keyof CSSStyleDeclaration];
-        if (value?.includes("oklch")) {
-          (el as HTMLElement).style[prop as any] = "#000"; // fallback
+      props.forEach((prop) => {
+        const value = style[prop];
+        if (typeof value === "string" && value.includes("oklch")) {
+          (el as HTMLElement).style[prop] = "#000"; // safe
         }
       });
     });

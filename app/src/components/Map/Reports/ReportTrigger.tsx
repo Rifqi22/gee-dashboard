@@ -1,15 +1,25 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { exportReport } from "./ExportReport";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 
-const ReportTrigger = ({ summary }) => {
+interface Props {
+  summary: SummaryItem[];
+}
+interface SummaryItem {
+  layer: string;
+  min: number;
+  max: number;
+  mean?: number;
+  unit?: string;
+}
+
+const ReportTrigger: React.FC<Props> = ({ summary }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   return (
     <button
       onClick={() =>
         exportReport({
           summary,
-          mapContainerId: "map-view",
           chartRef,
         })
       }

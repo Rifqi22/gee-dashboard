@@ -24,7 +24,7 @@ const MapPopup: React.FC<Props> = ({
   // Keep reference to current AbortController
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const map = useMapEvent("click", async (e) => {
+  useMapEvent("click", async (e) => {
     const { lat, lng } = e.latlng;
     handleClickLocation(lat, lng);
 
@@ -37,7 +37,7 @@ const MapPopup: React.FC<Props> = ({
     abortControllerRef.current = controller;
 
     // Show popup immediately
-    setPopupData({ lat, lng, value: null });
+    setPopupData({ lat, lng, lst_value: null, ndvi_value: null });
     setIsLoading(true);
 
     try {
@@ -53,8 +53,13 @@ const MapPopup: React.FC<Props> = ({
         lst_value: res.lst_value,
         ndvi_value: res.ndvi_value,
       });
-    } catch (err: any) {
-      if (err.name === "AbortError") {
+    } catch (err: unknown) {
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "name" in err &&
+        (err as { name: string }).name === "AbortError"
+      ) {
         // Request was aborted, ignore
         return;
       }
@@ -62,7 +67,8 @@ const MapPopup: React.FC<Props> = ({
       setPopupData({
         lat,
         lng,
-        value: NaN,
+        lst_value: NaN,
+        ndvi_value: NaN,
       });
     } finally {
       setIsLoading(false);
@@ -82,7 +88,9 @@ const MapPopup: React.FC<Props> = ({
   return popupData ? (
     <Popup
       position={[popupData.lat, popupData.lng]}
-      onClose={() => setPopupData(null)}
+      eventHandlers={{
+        popupclose: () => setPopupData(null),
+      }}
     >
       <div>
         <strong>LST Value:</strong>{" "}

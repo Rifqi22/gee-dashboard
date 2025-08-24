@@ -1,7 +1,6 @@
 import "./App.css";
 import Map from "./components/Map/Map";
 import Navbar from "./components/Layout/Navbar";
-import Sidebar from "./components/Layout/Sidebar";
 
 function App() {
   return (
