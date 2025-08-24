@@ -1,3 +1,8 @@
+# Utility functions for Earth Engine processing and date handling.
+# Functions:
+#   - mask_s2_clouds: Masks clouds and snow/ice from Sentinel-2 images using the SCL band.
+#   - get_last_12_months: Returns a sorted list of the last 12 months in YYYY-MM format.
+
 import ee
 from datetime import datetime, timedelta
 
@@ -14,6 +19,7 @@ def mask_s2_clouds(image: ee.Image) -> ee.Image:
     return image.updateMask(mask).divide(10000)
 
 def get_last_12_months():   
+    # Get the last 12 months as YYYY-MM strings
     today = datetime.utcnow() 
     months = [] 
     for i in range(12): 
