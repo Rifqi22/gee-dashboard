@@ -1,10 +1,13 @@
 import React from "react";
 import DateSelector from "../Map/DateSelector";
-import Basemap from "../Map/Toggle/Basemap";
+
 import Layer from "../Map/Toggle/Layer";
-import Legend from "../Map/Legend";
+
 import Panel from "../Core/Panel";
 import Control from "../Map/Drawer/Control";
+
+import ReportTrigger from "../Map/Reports/ReportTrigger";
+import Copyright from "../Map/Copyright";
 
 interface Props {
   startDate: string;
@@ -27,6 +30,7 @@ interface Props {
   applyAOI: () => void;
   hasAOI: boolean;
   sameAOI: boolean;
+  summary: any[];
 }
 const Sidebar: React.FC<Props> = ({
   startDate, // Date Selector
@@ -43,6 +47,7 @@ const Sidebar: React.FC<Props> = ({
   applyAOI, // Draw Control
   hasAOI, // Draw Control
   sameAOI, // Draw Control
+  summary,
 }) => {
   return (
     <Panel>
@@ -66,6 +71,8 @@ const Sidebar: React.FC<Props> = ({
         hasAOI={hasAOI}
         sameAOI={sameAOI}
       />
+      <ReportTrigger summary={summary} />
+      <Copyright />
     </Panel>
   );
 };

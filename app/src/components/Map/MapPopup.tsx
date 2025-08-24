@@ -4,9 +4,14 @@ import { useState, useRef, useEffect } from "react";
 interface Props {
   startDate: string;
   endDate: string;
+  handleClickLocation: (lat: number, lng: number) => void;
 }
 
-const MapPopup: React.FC<Props> = ({ startDate, endDate }) => {
+const MapPopup: React.FC<Props> = ({
+  startDate,
+  endDate,
+  handleClickLocation,
+}) => {
   const [popupData, setPopupData] = useState<{
     lat: number;
     lng: number;
@@ -21,6 +26,7 @@ const MapPopup: React.FC<Props> = ({ startDate, endDate }) => {
 
   const map = useMapEvent("click", async (e) => {
     const { lat, lng } = e.latlng;
+    handleClickLocation(lat, lng);
 
     // Cancel previous request if it exists
     if (abortControllerRef.current) {

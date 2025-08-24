@@ -7,10 +7,14 @@ import MapPopup from "./MapPopup";
 import Sidebar from "../Layout/Sidebar";
 import Basemap from "./Toggle/Basemap";
 import Wrapper from "../Core/Wrapper";
-import MapControl from "./Control/MapControl";
+
 import Drawer from "./Drawer/Drawer";
 import { AMAZON_BRAZIL_JSON } from "../../utils/constant";
 import Legend from "./Legend";
+import TimeSeriesChart from "../Chart/TimeSeries";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+
+import Report from "./Reports/Report";
 
 const Map: React.FC = () => {
   const [tileUrls, setTileUrls] = useState({
@@ -29,6 +33,12 @@ const Map: React.FC = () => {
   const mapRef = useRef<any>(null);
 
   const [opacity, setOpacityState] = useState({ lst: 1, ndvi: 1 });
+
+  const [clickedLocation, setClickedLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [timeSeries, setTimeSeries] = useState<any>(null);
 
   const setOpacity = (layer: "lst" | "ndvi", value: number) => {
     setOpacityState((prev) => ({ ...prev, [layer]: value }));
@@ -163,6 +173,36 @@ const Map: React.FC = () => {
     fetchLegendStats();
   }, [layers]);
 
+  useEffect(() => {
+    if (!clickedLocation) return;
+
+    const fetchTimeSeries = async () => {
+      const res = await fetch(
+        `http://127.0.0.1:8000/timeseries?lat=${clickedLocation.lat}&lng=${clickedLocation.lng}`
+      );
+      const json = await res.json();
+      setTimeSeries(json);
+    };
+
+    fetchTimeSeries();
+  }, [clickedLocation]);
+
+  const summary = [
+    {
+      layer: "Land Surface Temperature",
+      min: legendStats.lst?.min ?? 0,
+      max: legendStats.lst?.max ?? 0,
+      unit: "°C",
+    },
+    {
+      layer: "NDVI",
+      min: legendStats.ndvi?.min ?? 0,
+      max: legendStats.ndvi?.max ?? 0,
+    },
+  ];
+
+  console.log("SUMMARY AT MAP", summary);
+
   return (
     <div className="flex w-screen">
       {/* Sidebar*/}
@@ -181,16 +221,22 @@ const Map: React.FC = () => {
         applyAOI={applyAOI}
         hasAOI={!!AOI}
         sameAOI={sameAOI}
+        summary={summary}
       />
       <div className="flex-1 h-[calc(100vh-4rem)]">
         {/* Leaflet map */}
         <MapContainer
+          id="map-view"
           center={[-4, -60]} //BRAZIL CENTER
           zoom={6}
           whenCreated={(mapInstance) => {
             mapRef.current = mapInstance;
           }}
           style={{ height: "100%", width: "100%" }}
+          onClick={(e) => {
+            const { lat, lng } = e.latlng;
+            setClickedLocation({ lat, lng });
+          }}
         >
           {/* Base layers */}
           <TileLayer
@@ -198,11 +244,19 @@ const Map: React.FC = () => {
             attribution="OpenStreetMap"
           />
           {/* Basemap */}
-          <Wrapper className="absolute bottom-5 left-5 z-[500] rounded-md min-w-[20rem]">
+          <Wrapper
+            className={`absolute  left-8.5 z-[500] rounded-md min-w-[20rem] ${
+              clickedLocation ? "bottom-[20.5rem]" : "bottom-5"
+            }`}
+          >
             <Basemap />
           </Wrapper>
           {/* Legend */}
-          <Wrapper className="absolute bottom-5 right-5 z-[500] space-y-2 rounded-md min-w-[20rem]">
+          <Wrapper
+            className={`absolute bottom-5 right-5 z-[500] space-y-2 rounded-md min-w-[20rem] ${
+              clickedLocation ? "bottom-[20.5rem]" : "bottom-5"
+            }`}
+          >
             {layers.lst && legendStats.lst && (
               <Legend type="lst" legendStats={legendStats.lst} />
             )}
@@ -211,6 +265,24 @@ const Map: React.FC = () => {
               <Legend type="ndvi" legendStats={legendStats.ndvi} />
             )}
           </Wrapper>
+          {/* Time Series */}
+          {clickedLocation && (
+            <Wrapper
+              className={`absolute bottom-5 right-5 z-[500] space-y-2 rounded-md  overflow-auto min-w-[84.5rem] transition-all duration-500 ${
+                clickedLocation
+                  ? "translate-y-0 opacity-100"
+                  : "translate-y-[80%] opacity-0 pointer-events-none"
+              }`}
+            >
+              <button
+                onClick={() => setClickedLocation(null)}
+                className="absolute top-2 right-2 text-white hover:text-red-400 transition"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+              <TimeSeriesChart data={timeSeries} />
+            </Wrapper>
+          )}
           {/* <Wrapper className="absolute top-4 right-4 z-[500] rounded-md">
             <MapControl
               onResetView={handleResetView}
@@ -220,7 +292,15 @@ const Map: React.FC = () => {
             />
           </Wrapper> */}
           {/* MAP FUNCTION */}
-          {!isDrawing && <MapPopup startDate={startDate} endDate={endDate} />}
+          {!isDrawing && (
+            <MapPopup
+              startDate={startDate}
+              endDate={endDate}
+              handleClickLocation={(lat, lng) => {
+                setClickedLocation({ lat, lng });
+              }}
+            />
+          )}
           {isDrawing && <Drawer setAOI={setAOI} />}
           {/* MODIS LST tile layer */}
           {layers.lst && tileUrls.lst && (
@@ -239,6 +319,19 @@ const Map: React.FC = () => {
               opacity={opacity.ndvi}
             />
           )}
+
+          {/* {clickedLocation && timeSeries && summary.length && (
+            <Wrapper className="absolute top-5 left-1/2 transform -translate-x-1/2 z-[500] w-[90vw] max-w-[84rem]">
+              <Report
+                summary={summary}
+                mapContainerId="map-view"
+                timeSeries={{
+                  lst: timeSeries?.lst ?? [],
+                  ndvi: timeSeries?.ndvi ?? [],
+                }}
+              />
+            </Wrapper>
+          )} */}
         </MapContainer>
       </div>
     </div>

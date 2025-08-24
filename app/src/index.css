@@ -68,3 +68,56 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Dark theme for Leaflet zoom controls */
+.leaflet-control-zoom {
+  background-color: #1f1f1f !important;
+  border: 1px solid #333 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.leaflet-control-zoom a {
+  color: #fff !important;
+  background-color: #2a2a2a !important;
+  border-bottom: 1px solid #444 !important;
+}
+
+.leaflet-control-zoom a:last-child {
+  border-bottom: none !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #3a3a3a !important;
+}
+
+/* Dark theme for Leaflet Draw toolbar */
+.leaflet-draw-toolbar,
+.leaflet-draw-actions {
+  background-color: #1f1f1f !important;
+  border: 1px solid #333 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.leaflet-draw-toolbar a,
+.leaflet-draw-actions a {
+  background-color: #2a2a2a !important;
+  border-bottom: 1px solid #444 !important;
+  color: #fff !important;
+}
+
+.leaflet-draw-toolbar a:last-child,
+.leaflet-draw-actions a:last-child {
+  border-bottom: none !important;
+}
+
+.leaflet-draw-toolbar a:hover,
+.leaflet-draw-actions a:hover {
+  background-color: #3a3a3a !important;
+}
+
+.leaflet-draw-toolbar a {
+  background-color: #2a2a2a !important;
+  border-bottom: 1px solid #444 !important;
+  opacity: 1 !important;
+  filter: brightness(2) contrast(2);
+}

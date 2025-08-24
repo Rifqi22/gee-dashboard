@@ -4,6 +4,7 @@ from typing import Optional
 import ee
 import re
 import json
+from datetime import datetime, timedelta
 
 # Authenticate and Initialize Earth Engine
 ee.Authenticate()
@@ -211,3 +212,53 @@ def get_legend_stats_ndvi(start_date: str, end_date: str, aoi: Optional[str] = Q
 
     except ee.EEException as e:
         raise HTTPException(status_code=500, detail=f"Earth Engine error: {str(e)}")
+
+def get_last_12_months():
+    today = datetime.utcnow()
+    months = []
+    for i in range(12):
+        date = today - timedelta(days=30 * i)
+        months.append(date.strftime("%Y-%m"))
+    return sorted(set(months))
+
+@app.get("/timeseries")
+def get_timeseries(lat: float, lng: float):
+    point = ee.Geometry.Point([lng, lat])
+    months = get_last_12_months()
+
+    lst_values = []
+    ndvi_values = []
+
+    for month in months:
+        start = f"{month}-01"
+        end = f"{month}-28"
+
+        # LST
+        lst = ee.ImageCollection("MODIS/061/MOD11A2") \
+            .filterDate(start, end) \
+            .mean().select("LST_Day_1km").multiply(0.02).subtract(273.15)
+
+        lst_sample = lst.sample(point, 1000).first().get("LST_Day_1km")
+
+        # NDVI
+        ndvi = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED") \
+            .filterDate(start, end) \
+            .map(lambda img: img.normalizedDifference(["B8", "B4"]).rename("NDVI")) \
+            .mean().select("NDVI")
+
+        ndvi_sample = ndvi.sample(point, 10).first().get("NDVI")
+
+        try:
+            lst_val = lst_sample.getInfo()
+            ndvi_val = ndvi_sample.getInfo()
+        except:
+            lst_val = None
+            ndvi_val = None
+
+        lst_values.append({"month": month, "value": lst_val})
+        ndvi_values.append({"month": month, "value": ndvi_val})
+
+    return {
+        "lst": lst_values,
+        "ndvi": ndvi_values
+    }
