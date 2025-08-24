@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MapContainer, TileLayer } from "react-leaflet";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { TileLayerUpdater } from "./TileLayerUpdater";
+import { Map as LeafletMap } from "leaflet";
+import { useMapEvent } from "react-leaflet";
 
 import MapPopup from "./MapPopup";
 import Sidebar from "../Layout/Sidebar";
@@ -14,8 +17,6 @@ import Legend from "./Legend";
 import TimeSeriesChart from "../Chart/TimeSeries";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-import Report from "./Reports/Report";
-
 const Map: React.FC = () => {
   const [tileUrls, setTileUrls] = useState({
     lst: "",
@@ -27,10 +28,13 @@ const Map: React.FC = () => {
     lst: true,
     ndvi: false,
   });
-  const [AOI, setAOI] = useState<any>(AMAZON_BRAZIL_JSON);
+  const [AOI, setAOI] = useState<{
+    type: string;
+    coordinates: number[][][];
+  } | null>(AMAZON_BRAZIL_JSON);
   const [isDrawing, setIsDrawing] = useState(false);
   const [sameAOI, setSameAOI] = useState(true);
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
 
   const [opacity, setOpacityState] = useState({ lst: 1, ndvi: 1 });
 
@@ -38,7 +42,7 @@ const Map: React.FC = () => {
     lat: number;
     lng: number;
   } | null>(null);
-  const [timeSeries, setTimeSeries] = useState<any>(null);
+  const [timeSeries, setTimeSeries] = useState(null);
 
   const setOpacity = (layer: "lst" | "ndvi", value: number) => {
     setOpacityState((prev) => ({ ...prev, [layer]: value }));
@@ -168,6 +172,15 @@ const Map: React.FC = () => {
     }
   };
 
+  const MapClickHandler: React.FC<{
+    setClickedLocation: (loc: { lat: number; lng: number }) => void;
+  }> = ({ setClickedLocation }) => {
+    useMapEvent("click", (e) => {
+      setClickedLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
+    });
+    return null;
+  };
+
   useEffect(() => {
     fetchTile();
     fetchLegendStats();
@@ -186,6 +199,13 @@ const Map: React.FC = () => {
 
     fetchTimeSeries();
   }, [clickedLocation]);
+
+  const map = useMap();
+  useEffect(() => {
+    if (mapRef && mapRef.current === null && map) {
+      mapRef.current = map;
+    }
+  }, [map]);
 
   const summary = [
     {
@@ -226,18 +246,11 @@ const Map: React.FC = () => {
       <div className="flex-1 h-[calc(100vh-4rem)]">
         {/* Leaflet map */}
         <MapContainer
-          id="map-view"
-          center={[-4, -60]} //BRAZIL CENTER
+          center={[-4, -60] as LatLngExpression} //BRAZIL CENTER
           zoom={6}
-          whenCreated={(mapInstance) => {
-            mapRef.current = mapInstance;
-          }}
           style={{ height: "100%", width: "100%" }}
-          onClick={(e) => {
-            const { lat, lng } = e.latlng;
-            setClickedLocation({ lat, lng });
-          }}
         >
+          <MapClickHandler setClickedLocation={setClickedLocation} />
           {/* Base layers */}
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -301,7 +314,25 @@ const Map: React.FC = () => {
               }}
             />
           )}
-          {isDrawing && <Drawer setAOI={setAOI} />}
+          {isDrawing && (
+            <Drawer
+              setAOI={(geojson) => {
+                // Only accept Polygon or MultiPolygon
+                if (
+                  geojson.type === "Polygon" ||
+                  geojson.type === "MultiPolygon"
+                ) {
+                  setAOI({
+                    type: geojson.type,
+                    // @ts-expect-error geojson.coordinates type mismatch with expected AOI coordinates
+                    coordinates: geojson.coordinates,
+                  });
+                } else {
+                  setAOI(null);
+                }
+              }}
+            />
+          )}
           {/* MODIS LST tile layer */}
           {layers.lst && tileUrls.lst && (
             <TileLayerUpdater

@@ -17,7 +17,15 @@ const Basemap: React.FC<Props> = ({ initial = "osm" }) => {
   const map = useMap();
   const tileLayerRef = useRef<L.TileLayer | null>(null);
 
-  const basemaps = [
+  type BasemapLabel = "osm" | "topo" | "satellite" | "dark";
+
+  const basemaps: {
+    label: BasemapLabel;
+    name: string;
+    url: string;
+    thumbnail: string;
+    attribution: string;
+  }[] = [
     {
       label: "osm",
       name: "OpenStreetMap",

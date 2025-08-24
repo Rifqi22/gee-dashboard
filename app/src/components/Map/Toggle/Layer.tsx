@@ -11,8 +11,8 @@ interface Props {
     lst: number;
     ndvi: number;
   };
-  toggleLayer: (layerName: keyof typeof layers) => void;
-  setOpacity: (layerName: keyof typeof layers, value: number) => void;
+  toggleLayer: (layerName: "lst" | "ndvi") => void;
+  setOpacity: (layer: "lst" | "ndvi", value: number) => void;
 }
 const Layer: React.FC<Props> = ({
   layers,
