@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, TileLayer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { TileLayerUpdater } from "./TileLayerUpdater";
@@ -16,6 +16,7 @@ import { AMAZON_BRAZIL_JSON } from "../../utils/constant";
 import Legend from "./Legend";
 import TimeSeriesChart from "../Chart/TimeSeries";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { MapRefSetter } from "./MapRefSetter";
 
 const Map: React.FC = () => {
   const [tileUrls, setTileUrls] = useState({
@@ -200,13 +201,6 @@ const Map: React.FC = () => {
     fetchTimeSeries();
   }, [clickedLocation]);
 
-  const map = useMap();
-  useEffect(() => {
-    if (mapRef && mapRef.current === null && map) {
-      mapRef.current = map;
-    }
-  }, [map]);
-
   const summary = [
     {
       layer: "Land Surface Temperature",
@@ -250,6 +244,7 @@ const Map: React.FC = () => {
           zoom={6}
           style={{ height: "100%", width: "100%" }}
         >
+          <MapRefSetter mapRef={mapRef} />
           <MapClickHandler setClickedLocation={setClickedLocation} />
           {/* Base layers */}
           <TileLayer
