@@ -22,10 +22,12 @@ app.include_router(legend.router, prefix="")
 app.include_router(pixel.router, prefix="")
 app.include_router(timeseries.router, prefix="")
 
-# <<— Put startup event here
 @app.on_event("startup")
 async def startup_event():
-    init_gee()  # Earth Engine initialization runs once on function startup
+    try:
+        init_gee()
+    except Exception as e:
+        print("GEE init failed:", e)
 
 # Define root endpoint
 @app.get("/")
