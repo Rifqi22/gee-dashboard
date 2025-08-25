@@ -3,8 +3,10 @@ import os
 import json
 import tempfile
 from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
-load_dotenv()  # only for local dev
+print("EE_KEY_JSON:", os.environ.get("EE_KEY_JSON")[:50], "...")  # debug
+
 
 EE_ACCOUNT = "gee-dashboard@gee-dashboard-project.iam.gserviceaccount.com"
 
@@ -13,11 +15,21 @@ def init_gee():
     if not key_json_str:
         raise ValueError("Environment variable EE_KEY_JSON is not set!")
 
-    # Write JSON to a temp file (close it immediately)
-    temp_path = os.path.join(tempfile.gettempdir(), "ee_key.json")
-    with open(temp_path, "w", encoding="utf-8") as f:
-        f.write(key_json_str)
+    key_json_str = key_json_str.strip().strip("'").strip('"')
 
-    credentials = ee.ServiceAccountCredentials(EE_ACCOUNT, temp_path)
+    # Parse JSON
+    key_dict = json.loads(key_json_str)
+
+    # Write the JSON string to a temporary file
+    with tempfile.NamedTemporaryFile(mode="w+", suffix=".json", delete=False) as f:
+        f.write(json.dumps(key_dict))
+        f.flush()
+        key_file_path = f.name
+
+    credentials = ee.ServiceAccountCredentials(
+        EE_ACCOUNT,
+        key_file=key_file_path
+    )
+
     ee.Initialize(credentials)
-    print("Earth Engine initialized with service account.")
+    print("Earth Engine initialized in serverless mode")

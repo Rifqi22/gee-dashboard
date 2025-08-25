@@ -37,13 +37,42 @@ api/
    pip install -r requirements.txt
    ```
 
-2. **Configure Google Earth Engine**
+2. **Create a virtual environment**
 
-   - Make sure you have authenticated Earth Engine for your environment.
-
-3. **Run the API**
+   ```sh
+   python -m venv venv
    ```
-   uvicorn main:app --reload --port 8000
+
+3. **Activate the virtual environment**
+
+   - Using Powershell:
+     ```sh
+     venv\Scripts\Activate.ps1
+     ```
+   - Using Command Prompt:
+     ```sh
+     venv\Scripts\activate.bat
+     ```
+
+4. **Configure Google Earth Engine**
+
+   use env for the key on local development
+
+   create .env with thise value
+   replace with the actual key
+
+   EE_KEY_JSON='{"type":"service_account","project_id":"gee-dashboard-project","private_key_id":"50ff398012d085e0c7eb71101cca87a73e70d496","private_key":"-----BEGIN PRIVATE KEY-----\\n-----END PRIVATE KEY-----\n"}'
+
+5. **Navigate back to root / folder**
+   Because it runs on a relative routing we should run the uvicorn on the root folder not inside /api
+
+   ```sh
+   cd ..
+   ```
+
+6. **Run the API**
+   ```
+    uvicorn api.main:app --reload
    ```
 
 ## Endpoints

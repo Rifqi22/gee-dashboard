@@ -12,12 +12,16 @@
 
 import ee
 from fastapi import APIRouter, HTTPException, Query
-from services.utils import get_last_12_months
+from ..services.utils import get_last_12_months
+from ..core.gee_init import init_gee
+
 
 router = APIRouter()
 
 @router.get("/timeseries")
 def get_timeseries(lat: float, lng: float):
+    if not ee.data._initialized:
+        init_gee() 
     # Create a point geometry from latitude and longitude
     point = ee.Geometry.Point([lng, lat])
     # Get the last 12 months in YYYY-MM format

@@ -43,19 +43,27 @@ GitHub: [https://github.com/Rifqi22/gee-dashboard](https://github.com/Rifqi22/ge
 
 5. **Authenticate Google Earth Engine**
 
+   use env for the key on local development
+
+   create .env with thise value
+   replace with the actual key
+
+   EE_KEY_JSON='{"type":"service_account","project_id":"gee-dashboard-project","private_key_id":"50ff398012d085e0c7eb71101cca87a73e70d496","private_key":"-----BEGIN PRIVATE KEY-----\\n-----END PRIVATE KEY-----\n"}'
+
+6. **Navigate to root / folder**
+   Because it runs on a relative routing we should run the uvicorn on the root folder not inside /api
+
    ```sh
-   earthengine authenticate
+   cd ..
    ```
 
-   Log in with your approved Google account and copy the authorization code into the terminal.
-
-6. **Run the backend server**
+7. **Run the backend server**
 
    ```sh
-   uvicorn main:app --reload --port 8000
+   uvicorn api.main:app --reload
    ```
 
-7. **Verify server**
+8. **Verify server**
    Open in browser: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
 ---
@@ -80,7 +88,10 @@ GitHub: [https://github.com/Rifqi22/gee-dashboard](https://github.com/Rifqi22/ge
    npm install
    ```
 
-3. **Run the development server**
+3. **Create the .env file with this value**
+   VITE_API_BASE=http://127.0.0.1:8000/api
+
+4. **Run the development server**
 
    ```sh
    pnpm dev
@@ -92,7 +103,7 @@ GitHub: [https://github.com/Rifqi22/gee-dashboard](https://github.com/Rifqi22/ge
    npm run dev
    ```
 
-4. **Build for production**
+5. **Build for production**
    ```sh
    pnpm build
    ```
@@ -121,6 +132,6 @@ GitHub: [https://github.com/Rifqi22/gee-dashboard](https://github.com/Rifqi22/ge
 
 ## Deployed Dashboard
 
-Live Demo: [https://gee-dashboard-demo.netlify.app/](https://gee-dashboard-demo.netlify.app/)
+Live Demo: [https://gee-dashboard-ten.vercel.app/](https://gee-dashboard-ten.vercel.app/)
 
 ---
