@@ -99,17 +99,13 @@ const Map: React.FC = () => {
 
       if (layers.lst) {
         requests.push(
-          fetch(`http://127.0.0.1:8000/legend_stats_lst?${query}`).then((res) =>
-            res.json()
-          )
+          fetch(`/api/legend_stats_lst?${query}`).then((res) => res.json())
         );
       }
 
       if (layers.ndvi) {
         requests.push(
-          fetch(`http://127.0.0.1:8000/legend_stats_ndvi?${query}`).then(
-            (res) => res.json()
-          )
+          fetch(`/api/legend_stats_ndvi?${query}`).then((res) => res.json())
         );
       }
 
@@ -146,7 +142,7 @@ const Map: React.FC = () => {
       }
 
       if (layers.lst) {
-        const resLST = await fetch(`http://127.0.0.1:8000/tiles_lst?${query}`);
+        const resLST = await fetch(`/api/tiles_lst?${query}`);
         const jsonLST = await resLST.json();
         if (jsonLST.tile_url) {
           urls.lst = jsonLST.tile_url;
@@ -154,9 +150,7 @@ const Map: React.FC = () => {
       }
 
       if (layers.ndvi) {
-        const resNDVI = await fetch(
-          `http://127.0.0.1:8000/tiles_ndvi?${query}`
-        );
+        const resNDVI = await fetch(`/api/tiles_ndvi?${query}`);
         const jsonNDVI = await resNDVI.json();
         if (jsonNDVI.tile_url) {
           urls.ndvi = jsonNDVI.tile_url;
@@ -192,7 +186,7 @@ const Map: React.FC = () => {
 
     const fetchTimeSeries = async () => {
       const res = await fetch(
-        `http://127.0.0.1:8000/timeseries?lat=${clickedLocation.lat}&lng=${clickedLocation.lng}`
+        `/api/timeseries?lat=${clickedLocation.lat}&lng=${clickedLocation.lng}`
       );
       const json = await res.json();
       setTimeSeries(json);

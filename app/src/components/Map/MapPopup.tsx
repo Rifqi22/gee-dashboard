@@ -42,7 +42,7 @@ const MapPopup: React.FC<Props> = ({
 
     try {
       const req = await fetch(
-        `http://127.0.0.1:8000/pixel_value?lat=${lat}&lng=${lng}&start_date=${startDate}&end_date=${endDate}`,
+        `/api/pixel_value?lat=${lat}&lng=${lng}&start_date=${startDate}&end_date=${endDate}`,
         { signal: controller.signal }
       );
 
