@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from core.gee_init import init_gee
-from routes import tiles, legend, pixel, timeseries
+from .core.gee_init import init_gee
+from .routes import tiles, legend, pixel, timeseries
 from mangum import Mangum
 
 # Create FastAPI app
