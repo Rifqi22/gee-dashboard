@@ -17,11 +17,15 @@ import ee
 from fastapi import APIRouter, HTTPException, Query
 from ..services.validator import validate_date_format
 from ..services.utils import mask_s2_clouds
+from ..core.gee_init import init_gee
+
 
 router = APIRouter()
 
 @router.get("/pixel_value")
 def get_pixel_value(lat: float, lng: float, start_date: str, end_date: str):
+    if not ee.data._initialized:
+        init_gee() 
     # Validate date format
     validate_date_format(start_date)
     validate_date_format(end_date)

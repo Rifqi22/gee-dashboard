@@ -1,6 +1,7 @@
 import ee
 import os
 import json
+import tempfile
 
 EE_ACCOUNT = "gee-dashboard@gee-dashboard-project.iam.gserviceaccount.com"
 
@@ -9,13 +10,15 @@ def init_gee():
     if not key_json_str:
         raise ValueError("Environment variable EE_KEY_JSON is not set!")
 
-    key_dict = json.loads(key_json_str)
+    # Write the JSON string to a temporary file
+    with tempfile.NamedTemporaryFile(mode="w+", suffix=".json", delete=False) as f:
+        f.write(key_json_str)
+        f.flush()
+        key_file_path = f.name
 
-    # Use ServiceAccountCredentials with key dict
     credentials = ee.ServiceAccountCredentials(
-        key_dict["client_email"],
-        key_file=None,
-        private_key=key_dict["private_key"]
+        EE_ACCOUNT,
+        key_file=key_file_path
     )
 
     ee.Initialize(credentials)

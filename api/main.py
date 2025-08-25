@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .core.gee_init import init_gee
 from .routes import tiles, legend, pixel, timeseries
-from mangum import Mangum
 
 # Create FastAPI app
 app = FastAPI(title="GEE Dashboard Backend")
@@ -17,10 +16,10 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(tiles.router, prefix="")
-app.include_router(legend.router, prefix="")
-app.include_router(pixel.router, prefix="")
-app.include_router(timeseries.router, prefix="")
+app.include_router(tiles.router, prefix="/api")
+app.include_router(legend.router, prefix="/api")
+app.include_router(pixel.router, prefix="/api")
+app.include_router(timeseries.router, prefix="/api")
 
 @app.on_event("startup")
 async def startup_event():
@@ -33,6 +32,3 @@ async def startup_event():
 @app.get("/")
 def root():
     return {"message": "GEE Dashboard Backend is running"}
-
-# Mangum handler must be at the end
-handler = Mangum(app)

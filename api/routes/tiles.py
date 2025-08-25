@@ -20,11 +20,15 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 from ..services.validator import validate_date_format
 from ..services.utils import mask_s2_clouds
+from ..core.gee_init import init_gee
+
 
 router = APIRouter()
 
 @router.get("/tiles_lst")
 def get_tile(start_date: str, end_date: str, aoi: Optional[str] = Query(None)):
+    if not ee.data._initialized:
+        init_gee() 
     # Validate input date format
     validate_date_format(start_date)
     validate_date_format(end_date)
