@@ -15,8 +15,8 @@
 
 import ee
 from fastapi import APIRouter, HTTPException, Query
-from services.validator import validate_date_format
-from services.utils import mask_s2_clouds
+from ..services.validator import validate_date_format
+from ..services.utils import mask_s2_clouds
 
 router = APIRouter()
 

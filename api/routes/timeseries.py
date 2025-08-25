@@ -12,7 +12,7 @@
 
 import ee
 from fastapi import APIRouter, HTTPException, Query
-from services.utils import get_last_12_months
+from ..services.utils import get_last_12_months
 
 router = APIRouter()
 
