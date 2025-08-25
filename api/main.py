@@ -2,14 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.gee_init import init_gee
 from routes import tiles, legend, pixel, timeseries
-from mangum import Mangum  # <-- serverless adapter
+from mangum import Mangum
 
-# Initialize Earth Engine
-init_gee()
-
+# Create FastAPI app
 app = FastAPI(title="GEE Dashboard Backend")
 
-# CORS configuration
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,15 +16,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def root():
-    return {"message": "GEE Dashboard Backend is running"}
-
-# Include route groups
+# Include routers
 app.include_router(tiles.router, prefix="")
 app.include_router(legend.router, prefix="")
 app.include_router(pixel.router, prefix="")
 app.include_router(timeseries.router, prefix="")
 
-# Serverless entry point
+# <<— Put startup event here
+@app.on_event("startup")
+async def startup_event():
+    init_gee()  # Earth Engine initialization runs once on function startup
+
+# Define root endpoint
+@app.get("/")
+def root():
+    return {"message": "GEE Dashboard Backend is running"}
+
+# Mangum handler must be at the end
 handler = Mangum(app)
