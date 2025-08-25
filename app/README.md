@@ -82,7 +82,10 @@ app/
    npm install
    ```
 
-2. **Run the development server**
+2. **Create the .env file with this value**
+   VITE_API_BASE=http://127.0.0.1:8000/api
+
+3. **Run the development server**
 
    ```
    pnpm dev
@@ -94,7 +97,7 @@ app/
    npm run dev
    ```
 
-3. **Build for production**
+4. **Build for production**
    ```
    pnpm build
    ```

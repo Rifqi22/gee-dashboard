@@ -21,6 +21,8 @@ const MapPopup: React.FC<Props> = ({
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const API_BASE = import.meta.env.VITE_API_BASE || ""; // fallback to relative path
+
   // Keep reference to current AbortController
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -42,7 +44,7 @@ const MapPopup: React.FC<Props> = ({
 
     try {
       const req = await fetch(
-        `/api/pixel_value?lat=${lat}&lng=${lng}&start_date=${startDate}&end_date=${endDate}`,
+        `${API_BASE}/pixel_value?lat=${lat}&lng=${lng}&start_date=${startDate}&end_date=${endDate}`,
         { signal: controller.signal }
       );
 
